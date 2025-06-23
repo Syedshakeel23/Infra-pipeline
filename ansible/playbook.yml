@@ -1,0 +1,19 @@
+- name: Disable SELinux & Firewalld
+  hosts: all
+  become: yes
+  tasks:
+    - name: Disable SELinux (RedHat)
+      lineinfile:
+        path: /etc/selinux/config
+        regexp: '^SELINUX='
+        line: 'SELINUX=disabled'
+      when: ansible_os_family == "RedHat"
+      ignore_errors: yes
+
+    - name: Disable Firewalld
+      service:
+        name: firewalld
+        state: stopped
+        enabled: no
+      ignore_errors: yes
+

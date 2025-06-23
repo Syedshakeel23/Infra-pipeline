@@ -1,0 +1,22 @@
+- name: Install Netdata
+  hosts: backend
+  become: yes
+  tasks:
+    - name: Install required package
+      apt:
+        name: curl
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install Netdata
+      shell: bash <(curl -Ss https://my-netdata.io/kickstart.sh) --dont-wait
+      args:
+        executable: /bin/bash
+
+    - name: Ensure Netdata is running
+      service:
+        name: netdata
+        state: started
+        enabled: yes
+      ignore_errors: yes
+
