@@ -2,14 +2,21 @@
   hosts: backend
   become: yes
   tasks:
-    - name: Install required package
+    - name: Install required package (Debian-based)
       apt:
         name: curl
         state: present
       when: ansible_os_family == "Debian"
 
+    - name: Install required package (RedHat-based)
+      yum:
+        name: curl
+        state: present
+      when: ansible_os_family == "RedHat"
+
     - name: Install Netdata
-      shell: bash <(curl -Ss https://my-netdata.io/kickstart.sh) --dont-wait
+      shell: |
+        bash <(curl -Ss https://get.netdata.cloud/kickstart.sh) --dont-wait
       args:
         executable: /bin/bash
 
@@ -19,4 +26,3 @@
         state: started
         enabled: yes
       ignore_errors: yes
-
