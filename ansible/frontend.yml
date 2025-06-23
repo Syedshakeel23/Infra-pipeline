@@ -2,32 +2,21 @@
   hosts: frontend
   become: yes
   tasks:
-    - name: Install Nginx
-      package:
+    - name: Install Nginx on RedHat/Amazon Linux
+      yum:
         name: nginx
         state: present
+      when: ansible_os_family in ["RedHat", "Amazon"]
+
+    - name: Install Nginx on Debian/Ubuntu
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Debian"
 
     - name: Start and enable Nginx
       service:
         name: nginx
         state: started
         enabled: yes
-
-    - name: Configure reverse proxy
-      copy:
-        dest: /etc/nginx/conf.d/proxy.conf
-        content: |
-          server {
-              listen 80;
-              location / {
-                  proxy_pass http://{{ hostvars[groups['backend'][0]]['inventory_hostname'] }}:19999/;
-              }
-          }
-      notify: Restart nginx
-
-  handlers:
-    - name: Restart nginx
-      service:
-        name: nginx
-        state: restarted
-
