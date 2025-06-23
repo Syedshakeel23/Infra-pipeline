@@ -30,7 +30,7 @@ pipeline {
         stage('Generate Inventory') {
             steps {
                 dir("${SCRIPT_DIR}") {
-                    sh 'bash generate_inventory.sh'
+                    sh 'bash generate_inventory.bash'
                 }
                 script {
                     sh "cat ${ANSIBLE_DIR}/inventory.ini"
