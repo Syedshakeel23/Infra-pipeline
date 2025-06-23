@@ -40,10 +40,13 @@ pipeline {
 
         stage('Run Ansible Playbooks') {
             steps {
-                dir("${ANSIBLE_DIR}") {
-                    sh 'ansible-playbook playbook.yml'
-                    sh 'ansible-playbook backend.yml'
-                    sh 'ansible-playbook frontend.yml'
+                // SSH agent block to inject private key
+                sshagent(['mumbai-key']) {
+                    dir("${ANSIBLE_DIR}") {
+                        sh 'ansible-playbook playbook.yml'
+                        sh 'ansible-playbook backend.yml'
+                        sh 'ansible-playbook frontend.yml'
+                    }
                 }
             }
         }
