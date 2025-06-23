@@ -1,6 +1,9 @@
-- name: Install and configure Nginx
+- name: Install and configure Nginx on Frontend
   hosts: frontend
   become: yes
+  vars:
+    backend_server_ip: "{{ hostvars[groups['backend'][0]]['ansible_host'] }}"  # dynamically fetch backend ip
+
   tasks:
     - name: Enable Nginx in amazon-linux-extras (for Amazon Linux 2)
       shell: amazon-linux-extras enable nginx1
@@ -21,8 +24,24 @@
         update_cache: yes
       when: ansible_os_family == "Debian"
 
-    - name: Start and enable Nginx
+    - name: Create Nginx proxy config file
+      copy:
+        dest: /etc/nginx/conf.d/netdata_proxy.conf
+        content: |
+          server {
+              listen 80;
+              
+              location / {
+                  proxy_pass http://{{ backend_server_ip }}:19999/;
+                  proxy_set_header Host $host;
+                  proxy_http_version 1.1;
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection "upgrade";
+              }
+          }
+
+    - name: Restart Nginx to apply configuration
       service:
         name: nginx
-        state: started
+        state: restarted
         enabled: yes
