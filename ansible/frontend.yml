@@ -2,6 +2,12 @@
   hosts: frontend
   become: yes
   tasks:
+    - name: Enable Nginx in amazon-linux-extras (for Amazon Linux 2)
+      shell: amazon-linux-extras enable nginx1
+      when: ansible_os_family == "Amazon"
+      args:
+        executable: /bin/bash
+
     - name: Install Nginx on RedHat/Amazon Linux
       yum:
         name: nginx
