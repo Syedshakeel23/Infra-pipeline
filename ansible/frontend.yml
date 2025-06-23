@@ -4,7 +4,7 @@
   tasks:
     - name: Enable Nginx in amazon-linux-extras (for Amazon Linux 2)
       shell: amazon-linux-extras enable nginx1
-      when: ansible_os_family == "Amazon"
+      when: ansible_distribution == "Amazon"
       args:
         executable: /bin/bash
 
@@ -12,7 +12,7 @@
       yum:
         name: nginx
         state: present
-      when: ansible_os_family in ["RedHat", "Amazon"]
+      when: ansible_distribution in ["RedHat", "Amazon"]
 
     - name: Install Nginx on Debian/Ubuntu
       apt:
