@@ -2,12 +2,22 @@ pipeline {
     agent any
 
     environment {
+        PATH = "/usr/bin:/usr/local/bin:/bin"
         TF_DIR = 'terraform'
         ANSIBLE_DIR = 'ansible'
         SCRIPT_DIR = 'scripts'
     }
 
     stages {
+        stage('Verify Tools') {
+            steps {
+                sh 'which terraform'
+                sh 'terraform version'
+                sh 'which ansible'
+                sh 'ansible --version'
+            }
+        }
+
         stage('Terraform Init & Apply') {
             steps {
                 dir("${TF_DIR}") {
@@ -23,7 +33,7 @@ pipeline {
                     sh 'bash generate_inventory.sh'
                 }
                 script {
-                    sh 'cat ${ANSIBLE_DIR}/inventory.ini'
+                    sh "cat ${ANSIBLE_DIR}/inventory.ini"
                 }
             }
         }
@@ -45,4 +55,3 @@ pipeline {
         }
     }
 }
-
