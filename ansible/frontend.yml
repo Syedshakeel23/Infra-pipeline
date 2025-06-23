@@ -2,7 +2,7 @@
   hosts: frontend
   become: yes
   vars:
-    backend_server_ip: "{{ hostvars[groups['backend'][0]]['ansible_host'] }}"  # dynamically fetch backend ip
+    backend_server_ip: "{{ groups['backend'][0] }}"
 
   tasks:
     - name: Enable Nginx in amazon-linux-extras (for Amazon Linux 2)
