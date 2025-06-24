@@ -43,7 +43,7 @@ pipeline {
       steps {
         dir('ansible') {
           sh '''
-            ansible-playbook -i hosts disable-selinux-firewalld.yml
+            ansible-playbook -i hosts playbook.yml
             ansible-playbook -i hosts backend.yml
             ansible-playbook -i hosts frontend.yml
           '''
