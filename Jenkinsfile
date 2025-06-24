@@ -2,14 +2,13 @@ pipeline {
   agent any
 
   environment {
-    AWS_REGION = 'ap-south-1'
+    TF_VAR_aws_region = 'ap-south-1'
   }
 
   stages {
-
     stage('Checkout SCM') {
       steps {
-        git url: 'https://github.com/Syedshakeel23/Infra-pipeline.git', branch: 'main'
+        git 'https://github.com/Syedshakeel23/Infra-pipeline.git'
       }
     }
 
@@ -24,10 +23,14 @@ pipeline {
 
     stage('Terraform Init & Apply') {
       steps {
-        dir('terraform') {
-          withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_cred']]) {
-            sh 'terraform init'
-            sh 'terraform apply -auto-approve'
+        withCredentials([usernamePassword(credentialsId: 'aws_cred', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+          dir('terraform') {
+            sh '''
+              export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+              export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+              terraform init
+              terraform apply -auto-approve
+            '''
           }
         }
       }
@@ -35,15 +38,13 @@ pipeline {
 
     stage('Run Ansible Playbooks') {
       steps {
-        // Use ssh-agent with 'mumbai-key' during Ansible execution
-        sshagent(['mumbai-key']) {
-          sh 'ansible --version'
-          sh 'ansible-playbook -i ansible/inventory.ini ansible/backend.yml'
-          sh 'ansible-playbook -i ansible/inventory.ini ansible/frontend.yml'
+        dir('ansible') {
+          sh 'ansible-playbook -i hosts disable-selinux-firewalld.yml'
+          sh 'ansible-playbook -i hosts backend.yml'
+          sh 'ansible-playbook -i hosts frontend.yml'
         }
       }
     }
-
   }
 
   post {
