@@ -24,10 +24,12 @@ pipeline {
 
     stage('Terraform Init & Apply') {
       steps {
-        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
-                          credentialsId: 'aws_cred',
-                          accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                          secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+        withCredentials([[
+          $class: 'AmazonWebServicesCredentialsBinding',
+          credentialsId: 'aws_cred',
+          accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+          secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+        ]]) {
           dir('terraform') {
             sh '''
               export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
@@ -38,6 +40,14 @@ pipeline {
               terraform apply -auto-approve
             '''
           }
+        }
+      }
+    }
+
+    stage('Verify Ansible Inventory') {
+      steps {
+        dir('ansible') {
+          sh 'ansible-inventory -i hosts --list'
         }
       }
     }
