@@ -1,8 +1,8 @@
 [backend]
-backend1 ansible_host=172.31.5.98 ansible_user=ubuntu
+backend1 ansible_host=43.204.232.27 ansible_user=ubuntu
 
 [frontend]
-frontend1 ansible_host=172.31.3.179 ansible_user=ec2-user
+frontend1 ansible_host= 43.204.212.255 ansible_user=ec2-user
 
 [all:vars]
-backend_ip=172.31.5.98
+backend_ip=43.204.232.27
