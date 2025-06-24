@@ -10,7 +10,6 @@ pipeline {
     }
 
     stages {
-
         stage('Verify Tools') {
             steps {
                 sh 'which terraform'
@@ -24,15 +23,15 @@ pipeline {
             steps {
                 dir("${TF_DIR}") {
                     sh 'terraform init'
-                    withCredentials([
-                        string(credentialsId: 'aws_access_key_id', variable: 'AWS_ACCESS_KEY_ID'),
-                        string(credentialsId: 'aws_secret_access_key', variable: 'AWS_SECRET_ACCESS_KEY')
-                    ]) {
+                    withCredentials([[
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: 'aws_cred',
+                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                    ]]) {
                         sh '''
                             echo "Access Key: $AWS_ACCESS_KEY_ID"
                             echo "Secret Key: $AWS_SECRET_ACCESS_KEY"
-                            export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-                            export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
                             export AWS_DEFAULT_REGION=ap-south-1
                             terraform apply -auto-approve
                         '''
