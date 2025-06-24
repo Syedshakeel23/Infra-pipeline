@@ -30,9 +30,8 @@ pipeline {
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         sh '''
-                            echo "Access Key: $AWS_ACCESS_KEY_ID"
-                            echo "Secret Key: $AWS_SECRET_ACCESS_KEY"
-                            export AWS_DEFAULT_REGION=ap-south-1
+                            echo "Applying Terraform infrastructure..."
+                            terraform plan
                             terraform apply -auto-approve
                         '''
                     }
@@ -45,8 +44,8 @@ pipeline {
                 dir("${SCRIPT_DIR}") {
                     sh 'bash generate_inventory.bash'
                 }
-                script {
-                    sh "cat ${ANSIBLE_DIR}/inventory.ini"
+                dir("${ANSIBLE_DIR}") {
+                    sh 'cat inventory.ini'
                 }
             }
         }
