@@ -6,8 +6,6 @@
     - name: Enable Nginx in amazon-linux-extras (for Amazon Linux 2)
       command: amazon-linux-extras enable nginx1
       when: ansible_distribution == "Amazon"
-      args:
-        warn: false
 
     - name: Install Nginx
       yum:
