@@ -21,16 +21,10 @@ pipeline {
 
         stage('Terraform Init & Apply') {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'aws_cred',
-                    usernameVariable: 'AWS_ACCESS_KEY_ID',
-                    passwordVariable: 'AWS_SECRET_ACCESS_KEY'
-                )]) {
+                withAWS(credentials: 'aws_cred', region: "${AWS_DEFAULT_REGION}") {
                     dir("${TF_DIR}") {
                         sh '''
                             terraform init
-                            export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-                            export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
                             terraform plan
                             terraform apply -auto-approve
                         '''
