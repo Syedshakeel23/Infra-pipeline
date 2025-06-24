@@ -2,13 +2,11 @@ pipeline {
     agent any
 
     environment {
-        AWS_ACCESS_KEY_ID     = credentials('aws_access_key_id')
-        AWS_SECRET_ACCESS_KEY = credentials('aws_secret_access_key')
-        AWS_DEFAULT_REGION    = 'ap-south-1'
-        PATH                  = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-        TF_DIR                = 'terraform'
-        ANSIBLE_DIR           = 'ansible'
-        SCRIPT_DIR            = 'scripts'
+        AWS_DEFAULT_REGION = 'ap-south-1'
+        PATH               = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        TF_DIR             = 'terraform'
+        ANSIBLE_DIR        = 'ansible'
+        SCRIPT_DIR         = 'scripts'
     }
 
     stages {
@@ -25,7 +23,12 @@ pipeline {
             steps {
                 dir("${TF_DIR}") {
                     sh 'terraform init'
-                    sh 'AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION terraform apply -auto-approve'
+                    withCredentials([
+                        string(credentialsId: 'aws_access_key_id', variable: 'AWS_ACCESS_KEY_ID'),
+                        string(credentialsId: 'aws_secret_access_key', variable: 'AWS_SECRET_ACCESS_KEY')
+                    ]) {
+                        sh 'AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION terraform apply -auto-approve'
+                    }
                 }
             }
         }
