@@ -2,10 +2,10 @@
   hosts: frontend
   become: yes
   vars:
-    backend_server_ip: "{{ hostvars[groups['backend'][0]]['ansible_default_ipv4']['address'] }}"
+    backend_server_ip: "{{ groups['backend'][0] }}"
 
   tasks:
-    - name: Enable Nginx in amazon-linux-extras (Amazon Linux 2)
+    - name: Install Nginx on Amazon Linux
       shell: amazon-linux-extras enable nginx1
       when: ansible_distribution == "Amazon"
       args:
@@ -39,7 +39,7 @@
               }
           }
 
-    - name: Restart Nginx to apply new configuration
+    - name: Restart Nginx to apply new config
       service:
         name: nginx
         state: restarted
