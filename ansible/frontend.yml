@@ -3,17 +3,17 @@
   become: yes
 
   tasks:
-    - name: Enable Nginx in amazon-linux-extras (for Amazon Linux 2)
-      shell: amazon-linux-extras enable nginx1
+    - name: Install Nginx on Amazon Linux 2023+
+      ansible.builtin.dnf:
+        name: nginx
+        state: present
       when: ansible_distribution == "Amazon"
-      args:
-        executable: /bin/bash
 
-    - name: Install Nginx
+    - name: Install Nginx on RedHat/CentOS
       yum:
         name: nginx
         state: present
-      when: ansible_distribution in ["Amazon", "RedHat"]
+      when: ansible_distribution in ["RedHat"]
 
     - name: Install Nginx on Debian/Ubuntu
       apt:
@@ -35,6 +35,6 @@
 
   handlers:
     - name: Restart nginx
-      service:
+      ansible.builtin.service:
         name: nginx
         state: restarted
