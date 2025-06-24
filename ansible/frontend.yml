@@ -4,16 +4,11 @@
 
   tasks:
     - name: Install Nginx on Amazon Linux 2023+
-      ansible.builtin.dnf:
-        name: nginx
-        state: present
+      ansible.builtin.shell: |
+        dnf install -y nginx
       when: ansible_distribution == "Amazon"
-
-    - name: Install Nginx on RedHat/CentOS
-      yum:
-        name: nginx
-        state: present
-      when: ansible_distribution in ["RedHat"]
+      args:
+        executable: /bin/bash
 
     - name: Install Nginx on Debian/Ubuntu
       apt:
