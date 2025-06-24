@@ -23,47 +23,18 @@ pipeline {
             steps {
                 dir("${TF_DIR}") {
                     sh 'terraform init'
-                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', 
-                                      credentialsId: 'aws_cred',
-                                      accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                                      secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+                    withCredentials([[
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: 'aws_cred',
+                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                    ]]) {
                         sh '''
                             echo "Applying Terraform infrastructure..."
+                            export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+                            export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
                             terraform plan
                             terraform apply -auto-approve
                         '''
                     }
                 }
-            }
-        }
-
-        stage('Generate Inventory') {
-            steps {
-                dir("${SCRIPT_DIR}") {
-                    sh 'bash generate_inventory.bash'
-                }
-                dir("${ANSIBLE_DIR}") {
-                    sh 'cat inventory.ini'
-                }
-            }
-        }
-
-        stage('Run Ansible Playbooks') {
-            steps {
-                sshagent(['mumbai-key']) {
-                    dir("${ANSIBLE_DIR}") {
-                        sh 'ansible-playbook playbook.yml'
-                        sh 'ansible-playbook backend.yml'
-                        sh 'ansible-playbook frontend.yml'
-                    }
-                }
-            }
-        }
-    }
-
-    post {
-        always {
-            echo 'Pipeline completed.'
-        }
-    }
-}
