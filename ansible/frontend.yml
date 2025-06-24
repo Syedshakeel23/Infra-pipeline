@@ -3,19 +3,17 @@
   become: yes
 
   tasks:
-    - name: Install Nginx on Amazon Linux 2023
-      ansible.builtin.shell: |
-        microdnf install -y nginx
+    - name: Enable Nginx in amazon-linux-extras (for Amazon Linux 2)
+      command: amazon-linux-extras enable nginx1
       when: ansible_distribution == "Amazon"
       args:
-        executable: /bin/bash
+        warn: false
 
-    - name: Install Nginx on Debian/Ubuntu
-      apt:
+    - name: Install Nginx
+      yum:
         name: nginx
         state: present
-        update_cache: yes
-      when: ansible_os_family == "Debian"
+      when: ansible_distribution in ["Amazon", "RedHat"]
 
     - name: Deploy default index.html page
       copy:
@@ -30,6 +28,6 @@
 
   handlers:
     - name: Restart nginx
-      ansible.builtin.service:
+      service:
         name: nginx
         state: restarted
