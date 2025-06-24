@@ -27,10 +27,10 @@
         dest: /usr/share/nginx/html/index.html
         content: "<h1>Welcome to Frontend Nginx on Port 80</h1>"
 
-    - name: Deploy Nginx config
+    - name: Deploy Nginx reverse proxy config
       copy:
         src: netdata_proxy.conf
-        dest: /etc/nginx/nginx.conf
+        dest: /etc/nginx/conf.d/netdata_proxy.conf
       notify: Restart nginx
 
   handlers:
