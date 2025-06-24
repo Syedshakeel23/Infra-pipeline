@@ -24,7 +24,10 @@ pipeline {
 
     stage('Terraform Init & Apply') {
       steps {
-        withCredentials([usernamePassword(credentialsId: 'aws_cred', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                          credentialsId: 'aws_cred',
+                          accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                          secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
           dir('terraform') {
             sh '''
               export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
@@ -41,12 +44,15 @@ pipeline {
 
     stage('Run Ansible Playbooks') {
       steps {
-        dir('ansible') {
-          sh '''
-            ansible-playbook -i hosts playbook.yml
-            ansible-playbook -i hosts backend.yml
-            ansible-playbook -i hosts frontend.yml
-          '''
+        withCredentials([sshUserPrivateKey(credentialsId: 'ansible_ssh_key', keyFileVariable: 'SSH_KEY')]) {
+          dir('ansible') {
+            sh '''
+              chmod 600 $SSH_KEY
+              ansible-playbook -i hosts --private-key=$SSH_KEY playbook.yml
+              ansible-playbook -i hosts --private-key=$SSH_KEY backend.yml
+              ansible-playbook -i hosts --private-key=$SSH_KEY frontend.yml
+            '''
+          }
         }
       }
     }
@@ -54,7 +60,13 @@ pipeline {
 
   post {
     always {
-      echo 'Pipeline completed.'
+      echo '✅ CI/CD Pipeline completed.'
+    }
+    success {
+      echo '🎉 All stages completed successfully!'
+    }
+    failure {
+      echo '❌ Pipeline failed. Check stage logs for details.'
     }
   }
 }
