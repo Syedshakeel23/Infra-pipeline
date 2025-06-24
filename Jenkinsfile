@@ -38,3 +38,36 @@ pipeline {
                         '''
                     }
                 }
+            }
+        }
+
+        stage('Generate Inventory') {
+            steps {
+                dir("${SCRIPT_DIR}") {
+                    sh 'bash generate_inventory.bash'
+                }
+                dir("${ANSIBLE_DIR}") {
+                    sh 'cat inventory.ini'
+                }
+            }
+        }
+
+        stage('Run Ansible Playbooks') {
+            steps {
+                sshagent(['mumbai-key']) {
+                    dir("${ANSIBLE_DIR}") {
+                        sh 'ansible-playbook playbook.yml'
+                        sh 'ansible-playbook backend.yml'
+                        sh 'ansible-playbook frontend.yml'
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline completed.'
+        }
+    }
+}
