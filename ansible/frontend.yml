@@ -24,9 +24,20 @@
         enabled: yes
 
     - name: Create Nginx proxy config for Netdata backend
-      template:
-        src: templates/netdata_proxy.conf.j2
+      copy:
         dest: /etc/nginx/conf.d/netdata_proxy.conf
+        content: |
+          server {
+              listen 80;
+
+              location / {
+                  proxy_pass http://{{ backend_ip }}:19999/;
+                  proxy_http_version 1.1;
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection "upgrade";
+                  proxy_set_header Host $host;
+              }
+          }
 
     - name: Restart Nginx to apply config
       service:
