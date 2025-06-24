@@ -1,14 +1,14 @@
-- name: Install Netdata
+- name: Install Netdata on Backend
   hosts: backend
   become: yes
   tasks:
-    - name: Install required package (Debian-based)
+    - name: Install curl
       apt:
         name: curl
         state: present
       when: ansible_os_family == "Debian"
 
-    - name: Install required package (RedHat-based)
+    - name: Install curl
       yum:
         name: curl
         state: present
