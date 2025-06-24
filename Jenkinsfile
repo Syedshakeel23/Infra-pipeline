@@ -47,4 +47,16 @@ pipeline {
                     dir("${ANSIBLE_DIR}") {
                         sh 'ansible-playbook playbook.yml'
                         sh 'ansible-playbook backend.yml'
-                        sh 'ansible-playbook front
+                        sh 'ansible-playbook frontend.yml'
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline completed.'
+        }
+    }
+}
