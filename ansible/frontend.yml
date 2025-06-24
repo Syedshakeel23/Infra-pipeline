@@ -2,40 +2,33 @@
   hosts: frontend
   become: yes
   vars:
-    backend_server_ip: "{{ hostvars[groups['backend'][0]].ansible_default_ipv4.address }}"
+    backend_ip: "{{ hostvars['backend1'].ansible_host }}"
 
   tasks:
-    - name: Install Nginx on RedHat/Amazon Linux
+    - name: Enable Nginx (for Amazon Linux 2)
+      shell: amazon-linux-extras enable nginx1
+      when: ansible_distribution == "Amazon"
+      args:
+        executable: /bin/bash
+
+    - name: Install Nginx (Amazon/RedHat)
       yum:
         name: nginx
         state: present
-      when: ansible_os_family in ["RedHat", "Amazon"]
+      when: ansible_distribution in ["Amazon", "RedHat"]
 
-    - name: Install Nginx on Debian/Ubuntu
-      apt:
+    - name: Start & enable Nginx
+      service:
         name: nginx
-        state: present
-        update_cache: yes
-      when: ansible_os_family == "Debian"
+        state: started
+        enabled: yes
 
     - name: Create Nginx proxy config for Netdata backend
-      copy:
+      template:
+        src: templates/netdata_proxy.conf.j2
         dest: /etc/nginx/conf.d/netdata_proxy.conf
-        content: |
-          server {
-              listen 80;
 
-              location / {
-                  proxy_pass http://{{ backend_server_ip }}:19999/;
-                  proxy_http_version 1.1;
-                  proxy_set_header Upgrade $http_upgrade;
-                  proxy_set_header Connection "upgrade";
-                  proxy_set_header Host $host;
-              }
-          }
-
-    - name: Restart Nginx to apply configuration
+    - name: Restart Nginx to apply config
       service:
         name: nginx
         state: restarted
-        enabled: yes
