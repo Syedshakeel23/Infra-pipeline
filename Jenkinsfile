@@ -21,18 +21,16 @@ pipeline {
 
         stage('Terraform Init & Apply') {
             steps {
-                dir("${TF_DIR}") {
-                    sh 'terraform init'
-                    withCredentials([[
-                        $class: 'AmazonWebServicesCredentialsBinding',
-                        credentialsId: 'aws_cred',
-                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-                    ]]) {
+                withCredentials([usernamePassword(
+                    credentialsId: 'aws_cred',
+                    usernameVariable: 'AWS_ACCESS_KEY_ID',
+                    passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                )]) {
+                    dir("${TF_DIR}") {
                         sh '''
-                            echo "Applying Terraform infrastructure..."
-                            export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-                            export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+                            terraform init
+                            export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                            export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
                             terraform plan
                             terraform apply -auto-approve
                         '''
