@@ -1,21 +1,41 @@
 - name: Install and configure Nginx on Frontend
   hosts: frontend
   become: yes
+  vars:
+    backend_server_ip: "172.31.3.48"  # Replace this with your backend private IP
 
   tasks:
+    - name: Enable Nginx in amazon-linux-extras (for Amazon Linux 2)
+      shell: amazon-linux-extras enable nginx1
+      when: ansible_distribution == "Amazon"
+      args:
+        executable: /bin/bash
+
     - name: Install Nginx
       yum:
         name: nginx
         state: present
+      when: ansible_distribution in ["Amazon", "RedHat"]
 
-    - name: Copy custom Nginx config to /etc/nginx/nginx.conf
+    - name: Install Nginx on Debian/Ubuntu
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Deploy default index.html page
+      copy:
+        dest: /usr/share/nginx/html/index.html
+        content: "<h1>Welcome to Frontend Nginx on Port 80</h1>"
+
+    - name: Deploy Nginx reverse proxy configuration
       copy:
         dest: /etc/nginx/nginx.conf
         content: |
           events {
               worker_connections 1024;
           }
-
           http {
               include       mime.types;
               default_type  application/octet-stream;
@@ -25,19 +45,16 @@
               server {
                   listen 80;
                   server_name _;
-
                   root /usr/share/nginx/html;
-                  index index.html index.htm;
+                  index index.html;
               }
 
               upstream backend_netdata {
-                  server 44.210.117.103:19999;
+                  server {{ backend_server_ip }}:19999;
               }
 
               server {
                   listen 19999;
-                  server_name _;
-
                   location / {
                       proxy_pass http://backend_netdata;
                       proxy_http_version 1.1;
